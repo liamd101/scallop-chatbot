@@ -1,0 +1,45 @@
+@gpt_encoder
+type $embed_text(String) -> Tensor
+
+type questions(qid: i32, question: String)
+type conversation(convo: String)
+
+rel documents = {
+    (0, "Tomato is a fruit not a vegetable"),
+    (1, "Professor Rajiv Ghandi works at the university of Pennsylvania"),
+    (2, "Professor Mayur Naik works at the University of Pennsylvania"),
+    (3, "Professor Mayur Naik does research into Programming Languages and Machine Learning"),
+    (4, "Professor Mayur Naik's office is located in the Levine Building at Penn"),
+    (5, "Professor Mayur Naik likes ice cream"), // guessing :)
+    (6, "Professor Mayur Naik does not like tomatoes") // guessing again :)
+}
+
+rel equestions(question, $embed_text(question)) = questions(qid, question)
+rel edocuments(document, $embed_text(document)) = documents(did, document)
+
+
+@gpt(
+    prompt="""
+    Use the following pieces of context to answer the question at the end. 
+    If you don't know the answer, just say that you don't know, don't try to make up an answer. 
+    If there are two or three likely answers, list all of the likely answers.
+    Use three sentences maximum and keep the answer as concise as possible. 
+    {{context}}
+    Question: {{question}}
+    Helpful Answer:
+    {{response}}
+    """,
+    model="gpt-3.5-turbo",
+    debug=false,
+)
+type chatbot(bound context: String, bound question: String, response: String)
+
+rel doc_match(question, doc) = equestions(question, eques) and edocuments(doc, edoc) and soft_eq<Tensor>(eques, edoc)
+
+rel rel_docs(question, document) = document := top<5>(document: questions(qid, question), doc_match(question, document))
+rel cc_rel_docs(q, docs) = docs := string_join<"\n">(d: rel_docs(q, d))
+
+rel responses(question, response) = questions(qid, question), cc_rel_docs(question, docs), conversation(c), chatbot($string_concat(c, docs), question, response)
+
+query cc_rel_docs
+query responses
