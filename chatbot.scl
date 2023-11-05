@@ -23,9 +23,9 @@ rel pages(did, pid, page) = documents(did, document), doc_chunks(document, pid, 
 type $embed_text(String) -> Tensor
 
 rel equest(question, $embed_text(question)) = questions(qid, question)
-rel epages(did, pid, $embed_text(page)) = pages(did, pid, page)
+rel epages(page, $embed_text(page)) = pages(did, pid, page)
 
-rel doc_match(question, doc) = equestions(question, eques) and epages(doc, edoc) and soft_eq<Tensor>(eques, edoc)
+rel doc_match(question, page) = equest(question, eques) and epages(page, edoc) and soft_eq<Tensor>(eques, edoc)
 
 rel rel_docs(question, document) = document := top<3>(document: questions(qid, question), doc_match(question, document))
 rel cc_rel_docs(q, docs) = docs := string_join<"\n">(d: rel_docs(q, d))
@@ -44,11 +44,11 @@ rel cc_rel_docs(q, docs) = docs := string_join<"\n">(d: rel_docs(q, d))
     {{response}}
     """,
     model="gpt-3.5-turbo",
-    debug=false,
+    debug=true,
 )
 type chatbot(bound context: String, bound question: String, response: String)
 
-rel responses(question, response) = questions(qid, question), cc_rel_docs(question, docs), conversation(c), chatbot($string_concat(c, docs), question, response)
+rel responses(question, response) = questions(qid, question), cc_rel_docs(question, docs), conversation(c), chatbot(docs, question, response)
 
 query cc_rel_docs
 query responses

@@ -3,7 +3,7 @@ import scallopy_ext
 import os
 
 
-DOCUMENT_DIR = ''
+DOCUMENT_DIR = 'documents'
 SCALLOP_FILE = os.path.abspath(os.path.join(__file__, "../chatbot.scl"))
 
 
@@ -20,7 +20,8 @@ class Args:
 
 def build_index(ctx):
     for idx, filename in enumerate(os.listdir(DOCUMENT_DIR)):
-        ctx.add_facts('document_paths', [(idx, filename)])
+        rel_path = os.path.join(DOCUMENT_DIR, filename)
+        ctx.add_facts('document_paths', [(idx, rel_path)])
 
 
 # probably faster to use the same context because of memoization of
@@ -39,7 +40,7 @@ def process_question(conversation, question, qid):
     ctx.run()
     out = list(ctx.relation('responses'))[0][1]
 
-    return out
+    pass
 
 
 def main():
@@ -50,8 +51,8 @@ def main():
         if len(question) >= 1:
             qid += 1
             response = process_question(conversation, question, qid)
-            print("Response:       " + response)
-            conversation += question + "\n" + response + "\n"
+            # print("Response:       " + response)
+            # conversation += question + "\n" + response + "\n"
 
 
 if __name__ == "__main__":
