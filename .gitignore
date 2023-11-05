@@ -1,0 +1,5 @@
+.env/
+
+scallop-v2/
+*.pyc
+
