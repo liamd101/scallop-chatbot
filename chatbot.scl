@@ -1,23 +1,37 @@
-@gpt_encoder
-type $embed_text(String) -> Tensor
-
 type questions(qid: i32, question: String)
 type conversation(convo: String)
 
-rel documents = {
-    (0, "Tomato is a fruit not a vegetable"),
-    (1, "Professor Rajiv Ghandi works at the university of Pennsylvania"),
-    (2, "Professor Mayur Naik works at the University of Pennsylvania"),
-    (3, "Professor Mayur Naik does research into Programming Languages and Machine Learning"),
-    (4, "Professor Mayur Naik's office is located in the Levine Building at Penn"),
-    (5, "Professor Mayur Naik likes ice cream"), // guessing :)
-    (6, "Professor Mayur Naik does not like tomatoes") // guessing again :)
-}
 
-rel equestions(question, $embed_text(question)) = questions(qid, question)
-rel edocuments(document, $embed_text(document)) = documents(did, document)
+// ---------- parse documents ------------------
+@pdf_reader
+type $read_pdf(String) -> String
+
+type document_paths(did: usize, path: String)
+rel documents(did, $read_pdf(path)) = document_paths(did, path)
+
+@chunk_document(
+    chunk_size=250,
+    chunk_overlap=50,
+)
+type doc_chunks(bound document: String, pid: usize, page: String)
+
+rel pages(did, pid, page) = documents(did, document), doc_chunks(document, pid, page)
 
 
+// ---------- embed documents -------------------
+@gpt_encoder
+type $embed_text(String) -> Tensor
+
+rel equest(question, $embed_text(question)) = questions(qid, question)
+rel epages(did, pid, $embed_text(page)) = pages(did, pid, page)
+
+rel doc_match(question, doc) = equestions(question, eques) and epages(doc, edoc) and soft_eq<Tensor>(eques, edoc)
+
+rel rel_docs(question, document) = document := top<3>(document: questions(qid, question), doc_match(question, document))
+rel cc_rel_docs(q, docs) = docs := string_join<"\n">(d: rel_docs(q, d))
+
+
+// --------- run chatbot -----
 @gpt(
     prompt="""
     Use the following pieces of context to answer the question at the end. 
@@ -33,11 +47,6 @@ rel edocuments(document, $embed_text(document)) = documents(did, document)
     debug=false,
 )
 type chatbot(bound context: String, bound question: String, response: String)
-
-rel doc_match(question, doc) = equestions(question, eques) and edocuments(doc, edoc) and soft_eq<Tensor>(eques, edoc)
-
-rel rel_docs(question, document) = document := top<5>(document: questions(qid, question), doc_match(question, document))
-rel cc_rel_docs(q, docs) = docs := string_join<"\n">(d: rel_docs(q, d))
 
 rel responses(question, response) = questions(qid, question), cc_rel_docs(question, docs), conversation(c), chatbot($string_concat(c, docs), question, response)
 

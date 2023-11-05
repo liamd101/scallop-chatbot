@@ -3,6 +3,7 @@ import scallopy_ext
 import os
 
 
+DOCUMENT_DIR = ''
 SCALLOP_FILE = os.path.abspath(os.path.join(__file__, "../chatbot.scl"))
 
 
@@ -17,9 +18,13 @@ class Args:
         self.save_image_path = None
 
 
-# probably easier + faster + more efficient to use the same context repeatedly
-# stores memoization of questions + documents and also saves money
-# by not re-embedding documents each time
+def build_index(ctx):
+    for idx, filename in enumerate(os.listdir(DOCUMENT_DIR)):
+        ctx.add_facts('document_paths', [(idx, filename)])
+
+
+# probably faster to use the same context because of memoization of
+# questions + documents and also saves money by not re-embedding documents
 def process_question(conversation, question, qid):
     registry = scallopy_ext.PluginRegistry()
     registry.configure(args=Args().__dict__, unknown_args=None)
@@ -28,6 +33,7 @@ def process_question(conversation, question, qid):
     registry.load_into_ctx(ctx)
     ctx.import_file(SCALLOP_FILE)
 
+    build_index(ctx)
     ctx.add_facts("conversation", [(conversation,)])
     ctx.add_facts("questions", [(qid, question)])
     ctx.run()
