@@ -40,7 +40,7 @@ def process_question(conversation, question, qid):
     ctx.run()
     out = list(ctx.relation('responses'))[0][1]
 
-    pass
+    return out
 
 
 def main():
@@ -51,8 +51,8 @@ def main():
         if len(question) >= 1:
             qid += 1
             response = process_question(conversation, question, qid)
-            # print("Response:       " + response)
-            # conversation += question + "\n" + response + "\n"
+            print("Response:       " + response)
+            conversation += question + "\n" + response + "\n"
 
 
 if __name__ == "__main__":

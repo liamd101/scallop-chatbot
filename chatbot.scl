@@ -10,8 +10,8 @@ type document_paths(did: usize, path: String)
 rel documents(did, $read_pdf(path)) = document_paths(did, path)
 
 @chunk_document(
-    chunk_size=250,
-    chunk_overlap=50,
+    chunk_size=100,
+    chunk_overlap=20,
 )
 type doc_chunks(bound document: String, pid: usize, page: String)
 
