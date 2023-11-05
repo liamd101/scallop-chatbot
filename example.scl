@@ -1,8 +1,8 @@
 rel document = {
-    (0, "./test.pdf")
+    (0, "./documents/test.pdf")
 }
 
-@pdf_reader
+@pdf_reader(debug=true)
 type $read_pdf(String) -> String
 
 rel pdf_content(did, path, $read_pdf(path)) = document(did, path)
@@ -10,7 +10,7 @@ rel pdf_content(did, path, $read_pdf(path)) = document(did, path)
 query pdf_content
 
 @chunk_document(
-    chunk_size=250,
+    chunk_size=100,
     chunk_overlap=50,
 )
 type doc_chunks(bound document: String, pid: usize, page: String)
