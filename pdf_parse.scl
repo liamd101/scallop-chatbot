@@ -1,0 +1,21 @@
+rel document = {
+    (0, "./test.pdf")
+}
+
+@pdf_reader
+type $read_pdf(String) -> String
+
+rel pdf_content(did, path, $read_pdf(path)) = document(did, path)
+
+query pdf_content
+
+@chunk_document(
+    chunk_size=250,
+    chunk_overlap=50,
+)
+type doc_chunks(bound document: String, pid: usize, page: String)
+
+rel chunks(did, pid, page) = pdf_content(did, _, document), doc_chunks(document, pid, page)
+
+query chunks
+
