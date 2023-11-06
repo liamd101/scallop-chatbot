@@ -3,7 +3,7 @@ import scallopy_ext
 import os
 
 
-DOCUMENT_DIR = 'documents'
+DOCUMENT_DIR = os.path.abspath(os.path.join(__file__, "../documents"))
 SCALLOP_FILE = os.path.abspath(os.path.join(__file__, "../chatbot.scl"))
 
 
