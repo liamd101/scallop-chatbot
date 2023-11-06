@@ -24,13 +24,12 @@ def build_index(ctx):
         ctx.add_facts('document_paths', [(idx, rel_path)])
 
 
-# probably faster to use the same context because of memoization of
-# questions + documents and also saves money by not re-embedding documents
 def process_question(ctx, conversation, question, qid):
     ctx.add_facts("conversation", [(conversation,)])
     ctx.add_facts("questions", [(qid, question)])
     ctx.run()
     responses = list(ctx.relation('responses'))
+
     out = ''
     # prob a better way to do this
     for (new_q, response) in responses:
