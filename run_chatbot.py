@@ -20,6 +20,9 @@ class Args:
 
 def build_index(ctx):
     for idx, filename in enumerate(os.listdir(DOCUMENT_DIR)):
+        if not filename.endswith('pdf'):
+            continue
+
         rel_path = os.path.join(DOCUMENT_DIR, filename)
         ctx.add_facts('document_paths', [(idx, rel_path)])
 
