@@ -26,7 +26,25 @@ def build_index(ctx):
 
 # probably faster to use the same context because of memoization of
 # questions + documents and also saves money by not re-embedding documents
-def process_question(conversation, question, qid):
+def process_question(ctx, conversation, question, qid):
+    ctx.add_facts("conversation", [(conversation,)])
+    ctx.add_facts("questions", [(qid, question)])
+    ctx.run()
+    responses = list(ctx.relation('responses'))
+    out = ''
+    # prob a better way to do this
+    for (new_q, response) in responses:
+        if new_q == question:
+            out = response
+            break
+
+    return out
+
+
+def main():
+    conversation = ""
+    qid = 0
+
     registry = scallopy_ext.PluginRegistry()
     registry.configure(args=Args().__dict__, unknown_args=None)
 
@@ -35,22 +53,11 @@ def process_question(conversation, question, qid):
     ctx.import_file(SCALLOP_FILE)
 
     build_index(ctx)
-    ctx.add_facts("conversation", [(conversation,)])
-    ctx.add_facts("questions", [(qid, question)])
-    ctx.run()
-    out = list(ctx.relation('responses'))[0][1]
-
-    return out
-
-
-def main():
-    conversation = ""
-    qid = 0
     while True:
         question = input("Ask a question: ")
         if len(question) >= 1:
             qid += 1
-            response = process_question(conversation, question, qid)
+            response = process_question(ctx, conversation, question, qid)
             print("Response:       " + response)
             conversation += question + "\n" + response + "\n"
 
