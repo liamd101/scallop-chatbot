@@ -12,7 +12,7 @@ class Args:
         self.cuda = False
         self.gpu = None
         self.num_allowed_openai_request = 5
-        self.openai_gpt_model = "gpt-3.5-turbo"
+        self.openai_gpt_model = "gpt-4"
         self.openai_gpt_temperature = 0
         self.clip_model_checkpoint = None
         self.save_image_path = None
